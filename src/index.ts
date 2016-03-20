@@ -66,6 +66,10 @@ const {
   create: propsTodosEdit,
   filter: propsTodosEdit$
 } = makeAction<string>('props/todos/edit');
+const {
+  create: propsTodosToggle,
+  filter: propsTodosToggle$
+} = makeAction<string>('props/todos/toggle');
 
 // actions/views/
 
@@ -85,6 +89,10 @@ const {
   create: viewsTodoEdit,
   filter: viewsTodoEdit$
 } = makeAction<string>('views/todo/edit');
+const {
+  create: viewsTodoToggle,
+  filter: viewsTodoToggle$
+} = makeAction<string>('views/todo/toggle');
 
 // views/
 
@@ -120,7 +128,8 @@ const mainView = (state: State, helpers: any): any => {
         h('div.view', [
           h('input.toggle', {
             type: 'checkbox',
-            checked: todo.completed
+            checked: todo.completed,
+            onchange: () => e(viewsTodoToggle(todo.id))
           }),
           h('label', {
             ondblclick: () => e(viewsTodoEdit(todo.id))
@@ -184,6 +193,17 @@ const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
           .slice(0, index)
           .concat([newTodo])
           .concat(state.slice(index + 1));
+      }),
+    propsTodosToggle$(action$)
+      .map(id => state => {
+        const index = state.findIndex(i => i.id === id);
+        if (index < 0) return state;
+        const completed = !state[index].completed;
+        const newTodo = Object.assign({}, state[index], { completed });
+        return state
+          .slice(0, index)
+          .concat([newTodo])
+          .concat(state.slice(index + 1));
       })
   );
   const todos$: O<Todo[]> = O
@@ -229,6 +249,8 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .map(propsTodosDestroy),
     viewsTodoEdit$(action$)
       .map(propsTodosEdit),
+    viewsTodoToggle$(action$)
+      .map(propsTodosToggle),
     state$
       .map(render)
   );
