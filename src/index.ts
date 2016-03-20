@@ -58,6 +58,10 @@ const {
   create: propsTodosAdd,
   filter: propsTodosAdd$
 } = makeAction<Todo>('props/todos/add');
+const {
+  create: propsTodosDestroy,
+  filter: propsTodosDestroy$
+} = makeAction<string>('props/todos/destroy');
 
 // actions/views/
 
@@ -69,6 +73,10 @@ const {
   create: viewsNewTodoKeyup,
   filter: viewsNewTodoKeyup$
 } = makeAction<KeyboardEvent>('views/new-todo/keyup');
+const {
+  create: viewsTodoDestroy,
+  filter: viewsTodoDestroy$
+} = makeAction<string>('views/todo/destroy');
 
 // views/
 
@@ -109,6 +117,7 @@ const mainView = (state: State, helpers: any): any => {
           h('label', {
           }, [todo.title]),
           h('button.destroy', {
+            onclick: () => e(viewsTodoDestroy(todo.id))
           })
         ]),
         h('input.edit', {
@@ -150,7 +159,13 @@ const todo$ = (action$: O<A<any>>, state: string): O<string> => {
 const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
   const todosUpdater$ = O.merge(
     propsTodosAdd$(action$)
-      .map(value => state => state.concat([value]))
+      .map(value => state => state.concat([value])),
+    propsTodosDestroy$(action$)
+      .map(id => state => {
+        const index = state.findIndex(i => i.id === id);
+        if (index < 0) return state;
+        return state.slice(0, index).concat(state.slice(index + 1));
+      })
   );
   const todos$: O<Todo[]> = O
     .of(state)
@@ -191,6 +206,8 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .filter(title => title.trim().length > 0)
       .map(title => ({ id: id(), completed: false, editing: false, title }))
       .map(addTodo),
+    viewsTodoDestroy$(action$)
+      .map(propsTodosDestroy),
     state$
       .map(render)
   );
