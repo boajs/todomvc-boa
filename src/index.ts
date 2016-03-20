@@ -17,6 +17,18 @@ type State = {
 
 // utils/
 
+class FocusHook {
+  private focus: boolean;
+
+  constructor(focus: boolean) {
+    this.focus = focus;
+  }
+
+  hook(e: any) {
+    if (focus) e.focus();
+  }
+}
+
 const ENTER_KEY = 13;
 const ESCAPE_KEY = 27;
 
@@ -59,6 +71,10 @@ const {
   filter: propsTodosAdd$
 } = makeAction<Todo>('props/todos/add');
 const {
+  create: propsTodosChange,
+  filter: propsTodosChange$
+} = makeAction<{ id: string; title: string; }>('props/todos/change');
+const {
   create: propsTodosDestroy,
   filter: propsTodosDestroy$
 } = makeAction<string>('props/todos/destroy');
@@ -66,6 +82,10 @@ const {
   create: propsTodosEdit,
   filter: propsTodosEdit$
 } = makeAction<string>('props/todos/edit');
+const {
+  create: propsTodosSave,
+  filter: propsTodosSave$
+} = makeAction<string>('props/todos/save');
 const {
   create: propsTodosToggle,
   filter: propsTodosToggle$
@@ -81,6 +101,18 @@ const {
   create: viewsNewTodoKeyup,
   filter: viewsNewTodoKeyup$
 } = makeAction<KeyboardEvent>('views/new-todo/keyup');
+const {
+  create: viewsTodoBlur,
+  filter: viewsTodoBlur$
+} = makeAction<string>('views/todo/blur');
+const {
+  create: viewsTodoChange,
+  filter: viewsTodoChange$
+} = makeAction<{ event: Event; id: string; }>('views/todo/change');
+const {
+  create: viewsTodoKeyup,
+  filter: viewsTodoKeyup$
+} = makeAction<{ event: KeyboardEvent; id: string; }>('views/todo/keyup');
 const {
   create: viewsTodoDestroy,
   filter: viewsTodoDestroy$
@@ -139,6 +171,10 @@ const mainView = (state: State, helpers: any): any => {
           })
         ]),
         h('input.edit', {
+          'ev-focus': new FocusHook(todo.editing),
+          onblur: () => e(viewsTodoBlur(todo.id)),
+          onchange: event => e(viewsTodoChange({ event, id: todo.id })),
+          onkeyup: event => e(viewsTodoKeyup({ event, id: todo.id })),
           value: todo.title
         })
       ]);
@@ -178,6 +214,16 @@ const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
   const todosUpdater$ = O.merge(
     propsTodosAdd$(action$)
       .map(value => state => state.concat([value])),
+    propsTodosChange$(action$)
+      .map(({ id, title }) => state => {
+        const index = state.findIndex(i => i.id === id);
+        if (index < 0) return state;
+        const newTodo = Object.assign({}, state[index], { title });
+        return state
+          .slice(0, index)
+          .concat([newTodo])
+          .concat(state.slice(index + 1));
+      }),
     propsTodosDestroy$(action$)
       .map(id => state => {
         const index = state.findIndex(i => i.id === id);
@@ -193,6 +239,18 @@ const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
           .slice(0, index)
           .concat([newTodo])
           .concat(state.slice(index + 1));
+      }),
+    propsTodosSave$(action$)
+      .map(id => state => {
+        const index = state.findIndex(i => i.id === id);
+        if (index < 0) return state;
+        const newTodo = Object.assign({}, state[index], { editing: false });
+        return newTodo.title.trim().length > 0
+          ? state
+            .slice(0, index)
+            .concat([newTodo])
+            .concat(state.slice(index + 1))
+          : state.slice(0, index).concat(state.slice(index + 1));
       }),
     propsTodosToggle$(action$)
       .map(id => state => {
@@ -245,10 +303,21 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .filter(title => title.trim().length > 0)
       .map(title => ({ id: id(), completed: false, editing: false, title }))
       .map(addTodo),
+    viewsTodoBlur$(action$)
+      .map(propsTodosSave),
+    viewsTodoChange$(action$)
+      .map(({ event: { target }, id }) => ({ id, title: (<any>target).value }))
+      .map(data => propsTodosChange(data)),
     viewsTodoDestroy$(action$)
       .map(propsTodosDestroy),
     viewsTodoEdit$(action$)
       .map(propsTodosEdit),
+    viewsTodoKeyup$(action$)
+      .filter(({ event: { keyCode } }) => {
+        return keyCode === ENTER_KEY || keyCode == ESCAPE_KEY;
+      })
+      .map(({ id }) => id)
+      .map(propsTodosSave),
     viewsTodoToggle$(action$)
       .map(propsTodosToggle),
     state$
