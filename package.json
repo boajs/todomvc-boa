@@ -1,7 +1,21 @@
 {
-  "private": true,
+  "name": "todomvc-boa",
+  "description": "todomvc-boa",
+  "version": "0.1.0",
   "dependencies": {
+    "b-o-a": "0.5.2",
     "todomvc-app-css": "^2.0.0",
     "todomvc-common": "^1.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.0",
+    "typescript": "^1.8.9"
+  },
+  "main": "./js/app.js",
+  "private": true,
+  "scripts": {
+    "build": "tsc && browserify -o js/app.js .tmp/src/index.js",
+    "prebuild": "[ -d js ] || mkdir -p js",
+    "start": "npm run build && open index.html"
   }
 }
