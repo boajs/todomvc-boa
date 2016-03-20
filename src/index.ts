@@ -1,9 +1,13 @@
 import { run, O, A } from 'b-o-a';
 import { init as dom } from 'b-o-a/handlers/dom';
 
-// views
+// types/
 
-const view = (state: any, helpers: any): any => {
+type State = {};
+
+// views/
+
+const view = (state: State, helpers: any): any => {
   const { create: h } = helpers;
   return h('div');
 };
