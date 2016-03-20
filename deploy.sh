@@ -1,6 +1,6 @@
 #!/bin/bash
 
-get fetch origin gh-pages:gh-pages
+git fetch origin gh-pages:gh-pages
 git checkout origin/gh-pages
 git add index.html
 git add js/app.js
