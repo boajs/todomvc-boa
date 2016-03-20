@@ -72,7 +72,36 @@ const headerView = (state: State, helpers: any): any => {
 };
 
 const mainView = (state: State, helpers: any): any => {
-  return null;
+  if (state.todos.length === 0) return null;
+  const { create: h, e } = helpers;
+  return h('section.main', [
+    h('input.toggle-all', {
+      type: 'checkbox'
+    }),
+    h('label', {
+      attributes: { for: 'toggle-all' }
+    }, ['Mark all as complete']),
+    h('ul.todo-list', state.todos.map(todo => {
+      const classes = ''
+        + (todo.completed ? '.completed' : '')
+        + (todo.editing ? '.editing' : '');
+      return h('li' + classes, [
+        h('div.view', [
+          h('input.toggle', {
+            type: 'checkbox',
+            checked: todo.completed
+          }),
+          h('label', {
+          }, [todo.title]),
+          h('button.destroy', {
+          })
+        ]),
+        h('input.edit', {
+          value: todo.title
+        })
+      ]);
+    }))
+  ]);
 };
 
 const footerView = (state: State, helpers: any): any => {
