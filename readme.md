@@ -4,6 +4,13 @@
 
 b-o-a@0.5.2 & TypeScript@1.8.9
 
+## How to run
+
+```
+$ npm install
+$ npm start
+```
+
 ## Resources
 
 - [Website](https://github.com/bouzuya/b-o-a)
