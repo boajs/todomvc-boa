@@ -4,6 +4,11 @@
 
 b-o-a@0.5.2 & TypeScript@1.8.9
 
+TODO
+
+- [ ] [Persistence](https://github.com/tastejs/todomvc/blob/master/app-spec.md#persistence)
+- [ ] [Routing](https://github.com/tastejs/todomvc/blob/master/app-spec.md#routing)
+
 ## How to run
 
 ```
