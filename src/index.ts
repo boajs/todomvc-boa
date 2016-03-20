@@ -94,6 +94,10 @@ const {
   create: propsTodosToggle,
   filter: propsTodosToggle$
 } = makeAction<string>('props/todos/toggle');
+const {
+  create: propsTodosToggleAll,
+  filter: propsTodosToggleAll$
+} = makeAction<boolean>('props/todos/toggle-all');
 
 // actions/views/
 
@@ -133,6 +137,10 @@ const {
   create: viewsTodoToggle,
   filter: viewsTodoToggle$
 } = makeAction<string>('views/todo/toggle');
+const {
+  create: viewsToggleAllChange,
+  filter: viewsToggleAllChange$
+} = makeAction<Event>('views/toggle-all/change');
 
 // views/
 
@@ -159,7 +167,9 @@ const mainView = (state: State, helpers: any): any => {
   const { create: h, e } = helpers;
   return h('section.main', [
     h('input.toggle-all', {
-      type: 'checkbox'
+      type: 'checkbox',
+      onchange: data => e(viewsToggleAllChange(data)),
+      checked: state.todos.every(({ completed }) => completed)
     }),
     h('label', {
       attributes: { for: 'toggle-all' }
@@ -307,6 +317,12 @@ const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
           .slice(0, index)
           .concat([newTodo])
           .concat(state.slice(index + 1));
+      }),
+    propsTodosToggleAll$(action$)
+      .map(value => state => {
+        return state.map(todo => {
+          return Object.assign({}, todo, { completed: value });
+        });
       })
   );
   const todos$: O<Todo[]> = O
@@ -367,6 +383,9 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .map(propsTodosSave),
     viewsTodoToggle$(action$)
       .map(propsTodosToggle),
+    viewsToggleAllChange$(action$)
+      .map(({ target }) => (<any>target).checked)
+      .map(propsTodosToggleAll),
     state$
       .map(render)
   );
