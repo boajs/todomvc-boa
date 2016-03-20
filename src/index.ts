@@ -15,6 +15,12 @@ type State = {
   todos: Todo[];
 };
 
+// utils/
+
+const id = (): string => {
+  return String(new Date().getTime());
+};
+
 // views/
 
 const headerView = (state: State, helpers: any): any => {
