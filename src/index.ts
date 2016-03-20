@@ -17,6 +17,9 @@ type State = {
 
 // utils/
 
+const ENTER_KEY = 13;
+const ESCAPE_KEY = 27;
+
 const id = (): string => {
   return String(new Date().getTime());
 };
@@ -37,12 +40,24 @@ const {
   create: render
 } = makeAction<State>('render');
 
+const {
+  create: addTodo,
+  filter: addTodo$
+} = makeAction<Todo>('add-todo');
+
 // actions/props/todo/
 
 const {
   create: propsTodoChange,
   filter: propsTodoChange$
 } = makeAction<string>('props/todo/change');
+
+// actions/props/todos/
+
+const {
+  create: propsTodosAdd,
+  filter: propsTodosAdd$
+} = makeAction<Todo>('props/todos/add');
 
 // actions/views/
 
@@ -130,13 +145,28 @@ const todo$ = (action$: O<A<any>>, state: string): O<string> => {
   return todo$;
 };
 
+// props/todos
+
+const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
+  const todosUpdater$ = O.merge(
+    propsTodosAdd$(action$)
+      .map(value => state => state.concat([value]))
+  );
+  const todos$: O<Todo[]> = O
+    .of(state)
+    .merge(todosUpdater$)
+    .scan((state, updater) => updater(state));
+  return todos$;
+};
+
 // props/index
 
 const props = (action$: O<A<any>>, options: any): O<State> => {
   const { state }: { state: State; } = options;
   return O.combineLatest(
     todo$(action$, state.todo),
-    (todo) => Object.assign({}, state, { todo })
+    todos$(action$, state.todos),
+    (todo, todos) => ({ todo, todos })
   )
     .do(console.log.bind(console)) // TODO: state logger for debug
     .publishReplay(1)
@@ -148,9 +178,19 @@ const props = (action$: O<A<any>>, options: any): O<State> => {
 const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
   const { state$ }: { state$: O<State> } = options;
   return O.merge(
+    addTodo$(action$)
+      .map(propsTodosAdd),
+    addTodo$(action$)
+      .map(() => propsTodoChange('')),
     viewsNewTodoChange$(action$)
       .map(({ target }) => (<any>target).value)
       .map(propsTodoChange),
+    viewsNewTodoKeyup$(action$)
+      .filter(({ keyCode }) => keyCode === ENTER_KEY)
+      .withLatestFrom(state$, (_, { todo: title }) => title)
+      .filter(title => title.trim().length > 0)
+      .map(title => ({ id: id(), completed: false, editing: false, title }))
+      .map(addTodo),
     state$
       .map(render)
   );
