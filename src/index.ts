@@ -49,13 +49,13 @@ const makeAction = <T>(type: string) => {
 };
 
 const {
-  create: render
-} = makeAction<State>('render');
-
-const {
   create: addTodo,
   filter: addTodo$
 } = makeAction<Todo>('add-todo');
+
+const {
+  create: render
+} = makeAction<State>('render');
 
 // actions/props/todo/
 
@@ -136,6 +136,8 @@ const {
 
 // views/
 
+// views/header
+
 const headerView = (state: State, helpers: any): any => {
   const { create: h, e } = helpers;
   return h('header.header', [
@@ -149,6 +151,8 @@ const headerView = (state: State, helpers: any): any => {
     })
   ]);
 };
+
+// views/main
 
 const mainView = (state: State, helpers: any): any => {
   if (state.todos.length === 0) return null;
@@ -190,6 +194,8 @@ const mainView = (state: State, helpers: any): any => {
   ]);
 };
 
+// views/footer
+
 const footerView = (state: State, helpers: any): any => {
   if (state.todos.length === 0) return null;
   const { create: h, e } = helpers;
@@ -220,6 +226,8 @@ const footerView = (state: State, helpers: any): any => {
     )
   ]);
 };
+
+// views/index
 
 const view = (state: State, helpers: any): any => {
   const { create: h } = helpers;
