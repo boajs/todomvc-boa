@@ -51,10 +51,42 @@ const view = (state: State, helpers: any): any => {
   ]);
 };
 
+// props/
+
+const props = (action$: O<A<any>>, options: any): O<A<any>> => {
+  const { state }: { state: State; } = options;
+  return O.empty();
+};
+
+// maps/
+
+const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
+  const { state$ }: { state$: O<State> } = options;
+  return O.empty();
+};
+
 // app
 
 const handler = (action$: O<A<any>>, options: any): O<A<any>> => {
-  return O.empty();
+  const id1 = id();
+  const state: State = {
+    todo: '',
+    todos: [
+      {
+        id: id1,
+        completed: true,
+        title: 'Taste JavaScript',
+      },
+      {
+        id: String(parseInt(id1, 10) + 1),
+        completed: false,
+        title: 'Buy a unicorn',
+      }
+    ].map(i => Object.assign(i, { editing: false }))
+  };
+  const state$ = props(action$, { state });
+  const map$ = maps(action$, { state$ });
+  return map$;
 };
 
 // client
