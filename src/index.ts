@@ -75,6 +75,10 @@ const {
   filter: propsTodosChange$
 } = makeAction<{ id: string; title: string; }>('props/todos/change');
 const {
+  create: propsTodosClearCompleted,
+  filter: propsTodosClearCompleted$
+} = makeAction<void>('props/todos/clear-completed');
+const {
   create: propsTodosDestroy,
   filter: propsTodosDestroy$
 } = makeAction<string>('props/todos/destroy');
@@ -93,6 +97,10 @@ const {
 
 // actions/views/
 
+const {
+  create: viewsClearCompletedClick,
+  filter: viewsClearCompletedClick$
+} = makeAction<void>('views/clear-completed/click');
 const {
   create: viewsNewTodoChange,
   filter: viewsNewTodoChange$
@@ -183,7 +191,34 @@ const mainView = (state: State, helpers: any): any => {
 };
 
 const footerView = (state: State, helpers: any): any => {
-  return null;
+  if (state.todos.length === 0) return null;
+  const { create: h, e } = helpers;
+  const items = state.todos.filter(i => !i.completed).length;
+  const hasCompleted = state.todos.filter(i => i.completed).length > 0;
+  return h('footer.footer', [
+    h('span.todo-count', [
+      h('strong', [String(items)]),
+      ' item' + (items === 1 ? '' : 's') + ' left'
+    ]),
+    h('ul.filters', [
+      h('li', [
+        h('a.selected', { href: '#/' }, ['All'])
+      ]),
+      h('li', [
+        h('a', { href: '#/active' }, ['Active'])
+      ]),
+      h('li', [
+        h('a', { href: '#/completed' }, ['Completed'])
+      ])
+    ]),
+    (
+      hasCompleted
+        ? h('button.clear-completed', {
+          onclick: () => e(viewsClearCompletedClick(null))
+        }, ['Clear completed'])
+        : null
+    )
+  ]);
 };
 
 const view = (state: State, helpers: any): any => {
@@ -224,6 +259,8 @@ const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
           .concat([newTodo])
           .concat(state.slice(index + 1));
       }),
+    propsTodosClearCompleted$(action$)
+      .map(() => state => state.filter(i => !i.completed)),
     propsTodosDestroy$(action$)
       .map(id => state => {
         const index = state.findIndex(i => i.id === id);
@@ -294,6 +331,8 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .map(propsTodosAdd),
     addTodo$(action$)
       .map(() => propsTodoChange('')),
+    viewsClearCompletedClick$(action$)
+      .map(data => propsTodosClearCompleted(null)),
     viewsNewTodoChange$(action$)
       .map(({ target }) => (<any>target).value)
       .map(propsTodoChange),
