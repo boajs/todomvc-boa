@@ -3,7 +3,17 @@ import { init as dom } from 'b-o-a/handlers/dom';
 
 // types/
 
-type State = {};
+type Todo = {
+  id: string;
+  title: string;
+  completed: boolean;
+  editing: boolean;
+};
+
+type State = {
+  todo: string;
+  todos: Todo[];
+};
 
 // views/
 
