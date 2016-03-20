@@ -7,9 +7,32 @@ type State = {};
 
 // views/
 
+const headerView = (state: State, helpers: any): any => {
+  const { create: h, e } = helpers;
+  return h('header.header', [
+    h('h1', ['todos']),
+    h('input.new-todo', {
+      placeholder: 'What needs to be done?',
+      autofocus: true
+    })
+  ]);
+};
+
+const mainView = (state: State, helpers: any): any => {
+  return null;
+};
+
+const footerView = (state: State, helpers: any): any => {
+  return null;
+};
+
 const view = (state: State, helpers: any): any => {
   const { create: h } = helpers;
-  return h('div');
+  return h('section.todoapp', [
+    headerView(state, helpers),
+    mainView(state, helpers),
+    footerView(state, helpers)
+  ]);
 };
 
 // app
