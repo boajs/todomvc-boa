@@ -2,7 +2,7 @@
 
 > A simple framework
 
-b-o-a@0.5.2 & TypeScript@1.8.9
+b-o-a@0.6.0 & TypeScript@1.8.9
 
 TODO
 
