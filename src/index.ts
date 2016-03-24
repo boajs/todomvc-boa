@@ -59,6 +59,11 @@ const {
   create: render
 } = makeAction<State>('render');
 
+const {
+  create: save,
+  filter: save$
+} = makeAction<string>('save');
+
 // actions/props/filter/
 
 const {
@@ -457,7 +462,9 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .map(({ target }) => (<any>target).checked)
       .map(propsTodosToggleAll),
     state$
-      .map(render)
+      .map(render),
+    state$
+      .map(({ todos }) => save(JSON.stringify(todos)))
   );
 };
 
@@ -465,25 +472,37 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
 
 const handler = (action$: O<A<any>>, options: any): O<A<any>> => {
   const id1 = id();
+  const { state: todos }: { state: string; } = options;
   const state: State = {
     filter: 'all',
     todo: '',
-    todos: [
-      {
-        id: id1,
-        completed: true,
-        title: 'Taste JavaScript',
-      },
-      {
-        id: String(parseInt(id1, 10) + 1),
-        completed: false,
-        title: 'Buy a unicorn',
-      }
-    ].map(i => Object.assign(i, { editing: false }))
+    todos: (
+      todos
+        ? JSON.parse(todos)
+        : []
+    ).map(i => Object.assign(i, { editing: false }))
   };
   const state$ = props(action$, { state });
   const map$ = maps(action$, { state$ });
   return map$;
+};
+
+// handlers/local-storage
+
+const localStorage = ({
+  key, saveActionType
+}: { key: string; saveActionType: string }) => {
+  const state = window.localStorage.getItem(key);
+  const handler = (action$: O<A<any>>, options: any) => {
+    return action$.map(action => {
+      if (action.type !== saveActionType) return action;
+      window.localStorage.setItem(key, action.data);
+      return; // return undefined
+    })
+      .filter(a => !!a) // remove undefined
+      .share();
+  };
+  return { handler, state };
 };
 
 // client
@@ -493,6 +512,11 @@ const main = () => {
     const log$ = action$
       .do(console.log.bind(console)) // action logger for debug
       .share();
+    const {
+      handler: storageHandler,
+      state
+    } = localStorage({ key: 'todos-boa', saveActionType: 'save' });
+    const storage$ = storageHandler(log$, options);
     const history$ = history({
       goToActionType: 'views/go-to',
       historyType: 'hash',
@@ -502,12 +526,12 @@ const main = () => {
         { path: '/', name: 'all' }
       ],
       routeActionType: 'route'
-    }).handler(log$, options);
+    }).handler(storage$, options);
     const dom$ = dom({
       render: view,
       root: '.todoapp'
     }).handler(history$, options);
-    return handler(dom$, options);
+    return handler(dom$, Object.assign({}, options, { state }));
   });
 };
 
