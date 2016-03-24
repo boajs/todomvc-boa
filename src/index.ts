@@ -1,5 +1,6 @@
 import { run, O, A } from 'b-o-a';
 import { init as dom } from 'b-o-a/handlers/dom';
+import { init as history } from 'b-o-a/handlers/history';
 
 // types/
 
@@ -422,10 +423,20 @@ const main = () => {
     const log$ = action$
       .do(console.log.bind(console)) // action logger for debug
       .share();
+    const history$ = history({
+      goToActionType: 'views/go-to',
+      historyType: 'hash',
+      routes: [
+        { path: '/active', name: 'active' },
+        { path: '/completed', name: 'completed' },
+        { path: '/', name: 'all' }
+      ],
+      routeActionType: 'route'
+    }).handler(log$, options);
     const dom$ = dom({
       render: view,
       root: '.todoapp'
-    }).handler(log$, options);
+    }).handler(history$, options);
     return handler(dom$, options);
   });
 };

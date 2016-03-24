@@ -3,7 +3,7 @@
   "description": "todomvc-boa",
   "version": "0.1.0",
   "dependencies": {
-    "b-o-a": "0.6.0",
+    "b-o-a": "0.6.2",
     "todomvc-app-css": "^2.0.0",
     "todomvc-common": "^1.0.0"
   },
