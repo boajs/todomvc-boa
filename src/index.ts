@@ -12,6 +12,7 @@ type Todo = {
 };
 
 type State = {
+  filter: string;
   todo: string;
   todos: Todo[];
 };
@@ -58,6 +59,13 @@ const {
   create: render
 } = makeAction<State>('render');
 
+// actions/props/filter/
+
+const {
+  create: propsFilterChange,
+  filter: propsFilterChange$
+} = makeAction<string>('props/filter/change');
+
 // actions/props/todo/
 
 const {
@@ -100,8 +108,29 @@ const {
   filter: propsTodosToggleAll$
 } = makeAction<boolean>('props/todos/toggle-all');
 
+// actions/route/
+
+const {
+  filter: route$
+} = makeAction<State>('route');
+const routeActive$ = (action$: O<A<any>>): O<{}> =>
+  route$(action$)
+    .filter((data: any) => data.route.name === 'active')
+    .map(() => void 0);
+const routeCompleted$ = (action$: O<A<any>>): O<{}> =>
+  route$(action$)
+    .filter((data: any) => data.route.name === 'completed')
+    .map(() => void 0);
+const routeAll$ = (action$: O<A<any>>): O<{}> =>
+  route$(action$)
+    .filter((data: any) => data.route.name === 'all')
+    .map(() => void 0);
+
 // actions/views/
 
+const {
+  create: goTo
+} = makeAction<string>('views/go-to');
 const {
   create: viewsClearCompletedClick,
   filter: viewsClearCompletedClick$
@@ -166,6 +195,10 @@ const headerView = (state: State, helpers: any): any => {
 const mainView = (state: State, helpers: any): any => {
   if (state.todos.length === 0) return null;
   const { create: h, e } = helpers;
+  const filtered = state.todos.filter(todo => {
+    if (state.filter === 'all') return true;
+    return todo.completed === (state.filter === 'completed');
+  });
   return h('section.main', [
     h('input.toggle-all', {
       type: 'checkbox',
@@ -175,7 +208,7 @@ const mainView = (state: State, helpers: any): any => {
     h('label', {
       attributes: { for: 'toggle-all' }
     }, ['Mark all as complete']),
-    h('ul.todo-list', state.todos.map(todo => {
+    h('ul.todo-list', filtered.map(todo => {
       const classes = ''
         + (todo.completed ? '.completed' : '')
         + (todo.editing ? '.editing' : '');
@@ -219,13 +252,31 @@ const footerView = (state: State, helpers: any): any => {
     ]),
     h('ul.filters', [
       h('li', [
-        h('a.selected', { href: '#/' }, ['All'])
+        h('a' + (state.filter === 'all' ? '.selected' : ''), {
+          href: '#/',
+          onclick: event => {
+            event.preventDefault();
+            e(goTo('/'));
+          }
+        }, ['All'])
       ]),
       h('li', [
-        h('a', { href: '#/active' }, ['Active'])
+        h('a' + (state.filter === 'active' ? '.selected' : ''), {
+          href: '#/active',
+          onclick: event => {
+            event.preventDefault();
+            e(goTo('/active'));
+          }
+        }, ['Active'])
       ]),
       h('li', [
-        h('a', { href: '#/completed' }, ['Completed'])
+        h('a' + (state.filter === 'completed' ? '.selected' : ''), {
+          href: '#/completed',
+          onclick: event => {
+            event.preventDefault();
+            e(goTo('/completed'));
+          }
+        }, ['Completed'])
       ])
     ]),
     (
@@ -250,6 +301,17 @@ const view = (state: State, helpers: any): any => {
 };
 
 // props/
+
+// props/filter
+
+const filter$ = (action$: O<A<any>>, state: string): O<string> => {
+  const filterUpdater$ = propsFilterChange$(action$).map(value => () => value);
+  const filter$: O<string> = O
+    .of(state)
+    .merge(filterUpdater$)
+    .scan((state, updater) => updater(state));
+  return filter$;
+};
 
 // props/todo
 
@@ -338,9 +400,10 @@ const todos$ = (action$: O<A<any>>, state: Todo[]): O<Todo[]> => {
 const props = (action$: O<A<any>>, options: any): O<State> => {
   const { state }: { state: State; } = options;
   return O.combineLatest(
+    filter$(action$, state.filter),
     todo$(action$, state.todo),
     todos$(action$, state.todos),
-    (todo, todos) => ({ todo, todos })
+    (filter, todo, todos) => ({ filter, todo, todos })
   )
     .do(console.log.bind(console)) // TODO: state logger for debug
     .publishReplay(1)
@@ -356,6 +419,12 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
       .map(propsTodosAdd),
     addTodo$(action$)
       .map(() => propsTodoChange('')),
+    routeActive$(action$)
+      .map(() => propsFilterChange('active')),
+    routeCompleted$(action$)
+      .map(() => propsFilterChange('completed')),
+    routeAll$(action$)
+      .map(() => propsFilterChange('all')),
     viewsClearCompletedClick$(action$)
       .map(data => propsTodosClearCompleted(null)),
     viewsNewTodoChange$(action$)
@@ -397,6 +466,7 @@ const maps = (action$: O<A<any>>, options: any): O<A<any>> => {
 const handler = (action$: O<A<any>>, options: any): O<A<any>> => {
   const id1 = id();
   const state: State = {
+    filter: 'all',
     todo: '',
     todos: [
       {
