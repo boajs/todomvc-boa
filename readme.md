@@ -2,12 +2,7 @@
 
 > A simple framework
 
-b-o-a@0.6.0 & TypeScript@1.8.9
-
-TODO
-
-- [ ] [Persistence](https://github.com/tastejs/todomvc/blob/master/app-spec.md#persistence)
-- [ ] [Routing](https://github.com/tastejs/todomvc/blob/master/app-spec.md#routing)
+b-o-a@0.6.2 & TypeScript@1.8.9
 
 ## How to run
 
