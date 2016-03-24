@@ -217,7 +217,7 @@ const mainView = (state: State, helpers: any): any => {
       const classes = ''
         + (todo.completed ? '.completed' : '')
         + (todo.editing ? '.editing' : '');
-      return h('li' + classes, [
+      return h('li' + classes, { key: todo.id }, [
         h('div.view', [
           h('input.toggle', {
             type: 'checkbox',
