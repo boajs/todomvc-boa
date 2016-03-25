@@ -201,6 +201,7 @@ const mainView = (state: State, helpers: any): any => {
   if (state.todos.length === 0) return null;
   const { create: h, e } = helpers;
   const filtered = state.todos.filter(todo => {
+    if (state.filter === null) return false;
     if (state.filter === 'all') return true;
     return todo.completed === (state.filter === 'completed');
   });
@@ -474,7 +475,7 @@ const handler = (action$: O<A<any>>, options: any): O<A<any>> => {
   const id1 = id();
   const { state: todos }: { state: string; } = options;
   const state: State = {
-    filter: 'all',
+    filter: null,
     todo: '',
     todos: (
       todos
