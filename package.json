@@ -1,7 +1,7 @@
 {
   "name": "todomvc-boa",
   "description": "todomvc-boa",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "dependencies": {
     "b-o-a": "0.6.2",
     "todomvc-app-css": "^2.0.0",
