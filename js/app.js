@@ -98,6 +98,8 @@ var mainView = function (state, helpers) {
         return null;
     var h = helpers.create, e = helpers.e;
     var filtered = state.todos.filter(function (todo) {
+        if (state.filter === null)
+            return false;
         if (state.filter === 'all')
             return true;
         return todo.completed === (state.filter === 'completed');
@@ -355,7 +357,7 @@ var handler = function (action$, options) {
     var id1 = id();
     var todos = options.state;
     var state = {
-        filter: 'all',
+        filter: null,
         todo: '',
         todos: (todos
             ? JSON.parse(todos)
@@ -13013,12 +13015,15 @@ var HashHistory = (function () {
     HashHistory.prototype.go = function (path) {
         this.window.location.hash = '#' + path;
     };
-    HashHistory.prototype.start = function () {
+    HashHistory.prototype.start = function() {
+      console.log('start');
         var _this = this;
         window.addEventListener('hashchange', function (event) {
             var path = parse(event.newURL);
             _this.callback(path);
         }, false);
+        var path = parse(this.window.location.href);
+        _this.callback(path);
     };
     return HashHistory;
 }());
